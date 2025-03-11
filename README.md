@@ -4,6 +4,10 @@ Typecho 集成阿里云百炼 AI 助手插件，通过本插件可以基本上 0
 
 使用教程：[https://developer.aliyun.com/article/1656554](https://developer.aliyun.com/article/1656554)
 
+## 测试环境
+
+本插件测试于 Typecho 版本 1.2.1，PHP 版本 8.1，MySQL 5.7.40 环境。
+
 ## 效果图
 
 | 添加成功 | 要求登录 | 正常提问 | 限制速率 | 
