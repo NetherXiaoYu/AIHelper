@@ -55,7 +55,7 @@ class Plugin implements PluginInterface {
         $appId = new Text('appId', null, _t(''), _t('<h2>AIHelper阿里云百炼智能助手设置</h2>应用ID'), _t('如果不知道自己的应用ID，到<a href="https://bailian.console.aliyun.com/#/app-center">阿里云百炼应用控制台</a>获取'));
         $apiKey = new Password('apiKey', null, _t(''), _t('API-KEY'), _t('如果不知道自己的API-KEY或还没创建API-KEY，到<a href="https://bailian.console.aliyun.com/?apiKey=1">阿里云百炼API-KEY控制台</a>创建或获取'));
         
-        $autoUpdate = new Radio('autoUpdate', array('auto' => _t('自动推送'), 'manual' => _t('手动推送')), _t('auto'), _t('知识库更新方法'), _t('前者会在发布文章时直接提交到阿里云百炼的知识库中，后者则需要自己手动提交。如果前者提交超时可切换为后者<hr></hr>'));
+        $autoUpdate = new Radio('autoUpdate', array('new_only' => _t('自动推送（仅新发布）') ,'auto' => _t('自动推送'), 'manual' => _t('手动推送')), _t('auto'), _t('知识库更新方法'), _t('前者会在发布文章时直接提交到阿里云百炼的知识库中，后者则需要自己手动提交。如果前者提交超时可切换为后者<hr></hr>'));
         
         $mustLogin = new Radio('mustLogin', array('true' => _t('登录用户'), 'false' => _t('游客')), _t('true'), _t('<h2>安全设置</h2>调用AI助手身份'), _t('前者指必须登录才能调用AI助手，后者则是无需登录无限制调用'));
         $askInteval = new Text('askInteval', null, _t('120'), _t('提问间距（单位：秒）'), _t('开启登录用户提问才有更好的效果，不然智能做到普通的防刷。<hr></hr>'));
@@ -103,11 +103,17 @@ class Plugin implements PluginInterface {
     
     public static function pushFileToBailian($content, $archive) {
         if($archive->type != 'post' && $archive->type != 'page') {
-            return ;
+            return $archive;
         }
 
         $config = Helper::options()->plugin('AIHelper');
-        if($config->autoUpdate == 'manual') return ;
+        
+        // 防止修改重复提交
+        if($config->autoUpdate == 'new_only' && (abs($archive->modified - $archive->created) > 5)) {
+            return $archive;
+        }
+        
+        if($config->autoUpdate == 'manual') return $archive;
         
         if(empty($config->categoryId) || empty($config->workspaceId) || empty($config->knowledgeBaseId)) {
             throw new PluginException('请先设置 AIHelper 知识库推送部分！如无需自动推送请选择手动推送！');
@@ -148,7 +154,7 @@ class Plugin implements PluginInterface {
     }
     
     private static function checkSession() {
-        $_SESSION['helper_token'] = base64_encode('helper-'.mt_rand(1000000, 999999999));
+        if(!isset($_SESSION['helper_token'])) $_SESSION['helper_token'] = base64_encode('helper-'.mt_rand(1000000, 999999999));
     }
     
     public static function addHeader() {
