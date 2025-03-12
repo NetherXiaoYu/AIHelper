@@ -49,7 +49,7 @@ class AIHelper_Action extends Typecho_Widget implements Widget_Interface_Do {
 
         // 验证是否登录
         if(!$user->hasLogin() && $this->config->mustLogin == 'true') {
-            $this->outputError("你需要先登录才能使用，请先[登录](./admin/login.php)！");
+            $this->outputError("你需要先登录才能使用，请先[登录](/admin/login.php)！");
             exit();
         }
 
